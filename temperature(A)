@@ -4,7 +4,7 @@
 
 const int tempPin = A0;  // Thermistor connected to analog pin A0
 
-// Configuration values based on VMA320 (NTC 10k thermistor)
+// Configuration values for VMA320 (NTC 10k thermistor)
 const float seriesResistor = 10000.0;        // 10kΩ fixed resistor
 const float nominalResistance = 10000.0;     // 10kΩ at 25°C
 const float nominalTemperature = 25.0;       // in °C
@@ -19,10 +19,10 @@ void setup() {
 void loop() {
   int analogValue = analogRead(tempPin);
 
-  // Convert analog value to thermistor resistance
-  float resistance = seriesResistor * ((float)adcMax / analogValue - 1);
+  // Correct resistance calculation for thermistor between A0 and GND
+  float resistance = seriesResistor * ((float)analogValue / (adcMax - analogValue));
 
-  // Apply Steinhart-Hart (simplified) equation
+  // Steinhart-Hart equation (simplified)
   float steinhart;
   steinhart = resistance / nominalResistance;           // (R/Ro)
   steinhart = log(steinhart);                           // ln(R/Ro)
@@ -31,7 +31,7 @@ void loop() {
   steinhart = 1.0 / steinhart;                          // Invert
   steinhart -= 273.15;                                  // Convert from Kelvin to °C
 
-  // Print in CSV format: time,temperature
+  // Print in CSV format: time, temperature
   unsigned long seconds = millis() / 1000;
   Serial.print(seconds);
   Serial.print(",");
