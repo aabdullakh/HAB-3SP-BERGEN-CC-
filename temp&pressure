@@ -1,0 +1,36 @@
+const int pressurePin = A1;  // Pressure sensor connected to analog pin A1
+
+const float supplyVoltage = 5.0;  // Arduino supply voltage
+const int adcMax = 1023;          // 10-bit ADC
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("Time,Temperature(C),Pressure(bar)");  // CSV header
+}
+
+void loop() {
+  // === Temperature Code ===
+  int analogValue = analogRead(A0);
+  float resistance = 10000.0 * ((float)analogValue / (adcMax - analogValue));
+  float steinhart = resistance / 10000.0;
+  steinhart = log(steinhart);
+  steinhart /= 3950.0;
+  steinhart += 1.0 / (25.0 + 273.15);
+  steinhart = 1.0 / steinhart;
+  steinhart -= 273.15;
+
+  // === Pressure Code ===
+  int pressureValue = analogRead(pressurePin);
+  float voltage = (pressureValue / (float)adcMax) * supplyVoltage;
+  float pressure = ((voltage - 0.5) / 4.0) * 1.6;  // Converts to bar
+
+  // Print CSV: time, temperature, pressure
+  unsigned long seconds = millis() / 1000;
+  Serial.print(seconds);
+  Serial.print(",");
+  Serial.print(steinhart, 2);
+  Serial.print(",");
+  Serial.println(pressure, 3);
+
+  delay(1000);
+}
